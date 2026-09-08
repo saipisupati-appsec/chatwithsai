@@ -6,6 +6,7 @@ import { calculateMatch, formatMatchResult } from "@/lib/matching";
 import { createSession } from "@/lib/sessions";
 import { createHash } from "crypto";
 import { KNOWLEDGE_VERSION, MATCHING_ALGORITHM_VERSION } from "@/lib/knowledge";
+import { getCachedAnalysis, setCachedAnalysis } from "@/lib/cache";
 
 export const runtime = "nodejs";
 
@@ -57,14 +58,13 @@ export async function POST(req: NextRequest) {
       normalizedText = extracted.text;
       sourceUrl = fetched.finalUrl;
     } else if (jobDescription && typeof jobDescription === "string") {
-      const lenError = assertQuestionLength(jobDescription);
-      // Allow longer JD paste than normal questions
       if (jobDescription.length > 50_000) {
         return NextResponse.json(
           { error: "Job description is too long." },
           { status: 400 }
         );
       }
+      const lenError = assertQuestionLength(jobDescription);
       if (lenError && jobDescription.length > LIMITS.MAX_QUESTION_LENGTH * 10) {
         return NextResponse.json({ error: lenError }, { status: 400 });
       }
@@ -77,8 +77,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const matchResult = calculateMatch(requirements);
     const jdHash = hashJd(normalizedText);
+    const cached = getCachedAnalysis(jdHash);
+
+    let matchResult;
+    if (cached) {
+      requirements = cached.requirements;
+      matchResult = cached.match;
+    } else {
+      matchResult = calculateMatch(requirements);
+      setCachedAnalysis(jdHash, requirements, matchResult);
+    }
 
     const session = createSession({
       jobRequirements: requirements,
@@ -94,6 +103,7 @@ export async function POST(req: NextRequest) {
       questionsRemaining: LIMITS.RECRUITER_MAX_FOLLOWUPS,
       knowledgeVersion: KNOWLEDGE_VERSION,
       algorithmVersion: MATCHING_ALGORITHM_VERSION,
+      cacheHit: Boolean(cached),
     });
   } catch {
     return NextResponse.json(

@@ -4,71 +4,55 @@
 
 Professional AI profile for **Balasubramanya Sai Kumar** — Application Security experience, skills, projects, and career fit.
 
-ChatWithSai is **not** a general-purpose chatbot. All answers stay grounded in Sai's verified professional profile.
+Not a general-purpose chatbot. Answers stay grounded in the verified professional profile.
 
 ---
 
-## Current status (feature/production-v1)
+## Branch
 
-| Area | Status |
-|------|--------|
+Active development: **`feature/production-v1`**
+
+---
+
+## What works today
+
+| Feature | Status |
+|---------|--------|
 | Three modes (General / Recruiter / Career) | ✅ |
-| Responsive UI + Light/Dark/System theme | ✅ |
-| Structured knowledge base (`knowledge/`) | ✅ |
-| Deterministic skill verification | ✅ |
-| Deterministic matching engine (core) | ✅ |
-| SSRF protection utilities | ✅ |
-| Hard limits configuration | ✅ |
-| Job URL fetch + extraction | ⏳ Pending |
-| Server-side 10-question limit | ⏳ Pending |
-| Supabase + caching | ⏳ Pending |
-| RAG | ⏳ Pending |
-| Groq / OpenRouter | ⏳ Pending |
-| Full test suite + CI/CD | ⏳ Pending |
-| Cloudflare deployment config | ⏳ Pending |
-
-Knowledge version: **1.0.0**  
-Matching algorithm version: **1.0.0**
-
----
-
-## Three modes
-
-1. **General** — Questions about Sai's experience, skills, tools, projects.
-2. **Recruiter** — Job fit analysis (paste JD or URL), match %, strengths, gaps, follow-ups (max 10).
-3. **Career** — Positioning, gaps, what to emphasize, application advice.
+| Light / Dark / System theme | ✅ |
+| Structured knowledge base v1.0.0 | ✅ |
+| Deterministic skill verification (VERIFIED / UNKNOWN) | ✅ |
+| Deterministic job matching engine + bands | ✅ |
+| Job URL fetch (SSRF-hardened) + paste JD | ✅ |
+| HTML → text extraction + skill heuristics | ✅ |
+| Server-side recruiter 10-question limit | ✅ |
+| In-memory job analysis cache (hash of JD+versions) | ✅ |
+| API: `/api/chat`, `/api/jobs/analyze`, `/api/health` | ✅ |
+| LLM abstraction (Groq → OpenRouter → deterministic) | ✅ code (needs API keys) |
+| Security headers (CSP, XFO, nosniff, …) | ✅ |
+| Unit tests (knowledge, matching, SSRF, sessions) | ✅ |
+| GitHub Actions CI | ✅ |
+| Cloudflare Pages stubs (`wrangler.toml`, `_headers`) | ✅ |
+| Supabase persistence / pgvector RAG | ⏳ stubs only (needs credentials) |
 
 ---
 
-## Core principles
-
-- **AI when necessary. Deterministic when possible. Cached whenever reusable. Hard-limited everywhere.**
-- Never invent experience or skills.
-- Unknown technologies stay **UNKNOWN** (e.g. Kubernetes, Go, Ruby, TypeScript).
-- Job pages are untrusted data — never treated as instructions.
-- No secrets in the client bundle.
-
----
-
-## Local development
+## Local run
 
 ```bash
 npm install
-npm run dev
-```
-
-App runs at **http://localhost:4567**
-
-```bash
+npm run dev          # http://localhost:4567
 npm run lint
+npm run typecheck
+npm test
 npm run build
 ```
 
 ---
 
-## Environment variables
+## Environment
 
-Copy `.env.example` → `.env.local` and fill real values when you enable backend features.
+Copy `.env.example` → `.env.local` (never commit real secrets):
 
 ```
 SUPABASE_URL=
@@ -79,76 +63,58 @@ OPENROUTER_API_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:4567
 ```
 
-**Never commit `.env.local` or real credentials.**
+Without keys the app still works: deterministic answers, matching, SSRF fetch, sessions, and cache.
 
 ---
 
-## Project structure (current)
+## Architecture (current)
 
 ```
-chatwithsai/
-├── knowledge/                  # Authoritative Sai profile (v1.0.0)
-│   ├── VERSION
-│   ├── profile/
-│   ├── experience/
-│   ├── skills/
-│   ├── projects/
-│   ├── achievements/
-│   └── education/
-├── src/
-│   ├── app/
-│   ├── components/
-│   └── lib/
-│       ├── knowledge.ts        # Deterministic skill checks
-│       ├── matching.ts         # Deterministic match engine
-│       ├── mock-responses.ts   # Phase 1 response logic (still active)
-│       ├── theme.ts
-│       └── security/
-│           ├── ssrf.ts
-│           └── limits.ts
-├── .env.example
-└── package.json
+Browser
+  → Next.js UI (3 modes, theme)
+  → /api/chat | /api/jobs/analyze
+       → validation + limits
+       → SSRF-safe fetch (optional)
+       → extract + normalize JD
+       → deterministic match / skill check
+       → in-memory session (10 Q max)
+       → optional LLM (Groq → OpenRouter)
+       → response
 ```
 
 ---
 
-## Matching weights (deterministic)
+## Matching weights
 
-| Category              | Weight |
-|-----------------------|--------|
-| Required skills       | 40%    |
-| Experience            | 20%    |
-| Responsibilities      | 20%    |
-| Nice-to-have skills   | 10%    |
-| Education/certs       | 10%    |
+Required skills 40% · Experience 20% · Responsibilities 20% · Nice-to-have 10% · Education 10%
 
 Bands: 85–100 Strong · 70–84 Good · 50–69 Moderate · 0–49 Limited
 
----
-
-## Security notes (in progress)
-
-- SSRF: HTTPS only, private IP / metadata / localhost blocked, DNS rebinding checks, max 3 redirects, 10s timeout, 5 MB limit.
-- Prompt injection: external job content treated as data only.
-- Secrets: never in frontend, never committed.
-- Recruiter 10-question limit will be enforced server-side.
+Unknown skills (Kubernetes, Go, Ruby, TypeScript, …) are never treated as Yes.
 
 ---
 
-## Roadmap remaining
+## Security highlights
 
-- Secure job ingestion + extraction pipeline
-- API routes + server-side session / question counting
-- Supabase schema + job analysis cache
-- RAG over knowledge base
-- Groq primary + OpenRouter fallback
-- Rate limiting & cost controls
-- Unit / integration / security tests
-- GitHub Actions CI/CD
-- Cloudflare Pages/Workers deployment config
+- HTTPS-only job URLs; private/metadata/localhost blocked; DNS rebinding checks; max 3 redirects; 10s timeout; 5 MB cap
+- Job page content treated as data only (prompt-injection resistant pipeline)
+- Server-authoritative recruiter question counter
+- No secrets in client bundle; `.env.local` gitignored
+- Security headers via `next.config.ts` + Cloudflare `_headers`
 
 ---
 
-## License / usage
+## Remaining to production-harden
+
+1. Add real `GROQ_API_KEY` / `OPENROUTER_API_KEY` for career reasoning explanations
+2. Provision Supabase and apply `docs/supabase-schema.sql`; swap in-memory session/cache
+3. Optional: pgvector embeddings for full RAG
+4. IP rate limiting at Cloudflare edge
+5. Merge `feature/production-v1` → `main` after review
+6. Connect Cloudflare Pages project to the repo
+
+---
+
+## License / purpose
 
 Personal professional profile project for Balasubramanya Sai Kumar.
