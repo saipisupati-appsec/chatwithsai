@@ -2,6 +2,7 @@
 
 import { Mode } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
+import { brand } from "@/config/brand";
 
 interface HeaderProps {
   mode: Mode;
@@ -16,15 +17,15 @@ export default function Header({ mode, onModeChange }: HeaderProps) {
   ];
 
   return (
-    <header className="border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <header className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              ChatWithSai
+              {brand.name}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Ask about Sai.
+              {brand.tagline}
             </p>
           </div>
 

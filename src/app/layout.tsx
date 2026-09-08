@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { brand } from "@/config/brand";
 
 export const metadata: Metadata = {
-  title: "ChatWithSai — Ask about Sai",
+  title: `${brand.name} — ${brand.tagline}`,
   description:
     "Professional AI profile for Balasubramanya Sai Kumar. Ask about Application Security experience, skills, projects, and career fit.",
   keywords: [
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     "AppSec",
     "DevSecOps",
     "Threat Modeling",
-    "ChatWithSai",
+    brand.name,
   ],
 };
 

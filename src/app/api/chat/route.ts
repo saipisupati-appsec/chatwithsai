@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LIMITS, assertQuestionLength } from "@/lib/security/limits";
-import { getMockResponse } from "@/lib/mock-responses";
 import type { Mode } from "@/lib/types";
 import { getSession, incrementQuestion } from "@/lib/sessions";
-import { formatMatchResult } from "@/lib/matching";
-import { checkSkill } from "@/lib/knowledge";
+import { answerQuestion, type TopicId } from "@/lib/answers";
 
 export const runtime = "nodejs";
 
@@ -25,10 +23,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
     }
 
-    const { message, mode, sessionId } = body as {
+    const { message, mode, sessionId, lastTopic } = body as {
       message?: string;
       mode?: string;
       sessionId?: string;
+      lastTopic?: TopicId;
     };
 
     if (!message || typeof message !== "string") {
@@ -44,7 +43,10 @@ export async function POST(req: NextRequest) {
       ? (mode as Mode)
       : "general";
 
-    // Recruiter follow-up with session → enforce 10-question limit server-side
+    let matchResult = null;
+    let questionsRemaining: number | undefined;
+    let activeSessionId = sessionId;
+
     if (resolvedMode === "recruiter" && sessionId) {
       const inc = incrementQuestion(sessionId);
       if (!inc.ok) {
@@ -58,63 +60,33 @@ export async function POST(req: NextRequest) {
           { status: 429 }
         );
       }
-
       const session = inc.session!;
-      const remaining =
+      matchResult = session.matchResult ?? null;
+      questionsRemaining =
         LIMITS.RECRUITER_MAX_FOLLOWUPS - session.questionCount;
-
-      // Prefer answering from stored analysis when possible
-      const q = message.toLowerCase();
-      if (
-        session.matchResult &&
-        (q.includes("match") ||
-          q.includes("score") ||
-          q.includes("gap") ||
-          q.includes("strength") ||
-          q.includes("recommend"))
-      ) {
-        return NextResponse.json({
-          reply: formatMatchResult(session.matchResult),
-          mode: resolvedMode,
-          sessionId: session.id,
-          questionsRemaining: remaining,
-          source: "deterministic-session",
-        });
-      }
-
-      // Skill check against profile
-      const skillHit = checkSkill(message);
-      if (skillHit.status !== "UNKNOWN" || /kubernetes|golang|\bgo\b|ruby|typescript/i.test(message)) {
-        return NextResponse.json({
-          reply:
-            skillHit.status === "VERIFIED"
-              ? skillHit.message +
-                (skillHit.related
-                  ? ` Related: ${skillHit.related.join(", ")}.`
-                  : "")
-              : `**Unknown / Gap** — ${skillHit.message}`,
-          mode: resolvedMode,
-          sessionId: session.id,
-          questionsRemaining: remaining,
-          source: "deterministic-skill",
-        });
-      }
-
-      const reply = getMockResponse(message, resolvedMode);
-      return NextResponse.json({
-        reply,
-        mode: resolvedMode,
-        sessionId: session.id,
-        questionsRemaining: remaining,
-        source: "deterministic",
-      });
+      activeSessionId = session.id;
+    } else if (resolvedMode === "recruiter" && sessionId) {
+      const s = getSession(sessionId);
+      matchResult = s?.matchResult ?? null;
     }
 
-    // General / Career / Recruiter without session
-    const reply = getMockResponse(message, resolvedMode);
-    return NextResponse.json({
-      reply,
+    const result = answerQuestion(message, {
       mode: resolvedMode,
+      lastTopic: lastTopic ?? null,
+      matchResult,
+      questionsUsed:
+        questionsRemaining !== undefined
+          ? LIMITS.RECRUITER_MAX_FOLLOWUPS - questionsRemaining
+          : undefined,
+      questionsMax: LIMITS.RECRUITER_MAX_FOLLOWUPS,
+    });
+
+    return NextResponse.json({
+      reply: result.text,
+      topic: result.topic,
+      mode: resolvedMode,
+      sessionId: activeSessionId,
+      questionsRemaining,
       source: "deterministic",
     });
   } catch {
