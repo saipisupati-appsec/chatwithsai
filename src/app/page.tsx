@@ -24,8 +24,6 @@ export default function Home() {
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
-    // Optional: clear messages on mode switch for cleaner demo
-    // setMessages([]);
   };
 
   const handleSend = async (text: string) => {
@@ -63,7 +61,7 @@ export default function Home() {
   const showSuggestions = messages.length === 0;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900">
       <Header mode={mode} onModeChange={handleModeChange} />
 
       <main className="flex-1 flex flex-col max-w-4xl w-full mx-auto px-4 sm:px-6">
@@ -71,7 +69,7 @@ export default function Home() {
         {showSuggestions && (
           <div className="flex-1 flex flex-col items-center justify-center py-12 sm:py-20">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-100 text-brand-700 mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 mb-6">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -87,17 +85,17 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                 Ask about Sai
               </h2>
-              <p className="text-slate-600 max-w-md mx-auto text-sm sm:text-base">
+              <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto text-sm sm:text-base">
                 Professional AI profile for Balasubramanya Sai Kumar — Application
                 Security experience, skills, projects, and career fit.
               </p>
             </div>
 
             <div className="w-full max-w-2xl">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3 text-center">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 text-center">
                 Suggested questions
               </p>
               <SuggestedQuestions
@@ -107,9 +105,9 @@ export default function Home() {
             </div>
 
             {mode === "recruiter" && (
-              <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl max-w-md text-center">
-                <p className="text-sm text-amber-800">
-                  <strong>Recruiter mode</strong> — Full job URL analysis &
+              <div className="mt-8 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl max-w-md text-center">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Recruiter mode</strong> — Full job URL analysis &amp;
                   deterministic matching will be available in a later phase.
                   For now you can ask about specific skills and experience.
                 </p>
@@ -127,7 +125,7 @@ export default function Home() {
 
             {isTyping && (
               <div className="flex justify-start animate-fade-in">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
                   <div className="flex gap-1.5">
                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -142,7 +140,7 @@ export default function Home() {
         )}
 
         {/* Input area */}
-        <div className="py-4 border-t border-slate-100 bg-slate-50/80 sticky bottom-0">
+        <div className="py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 sticky bottom-0">
           {!showSuggestions && (
             <div className="mb-3">
               <SuggestedQuestions
@@ -163,9 +161,9 @@ export default function Home() {
                 : "Ask about Sai..."
             }
           />
-          <p className="text-xs text-slate-400 text-center mt-2">
-            ChatWithSai focuses only on Sai&apos;s professional profile. Phase 1 —
-            deterministic mock responses.
+          <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-2">
+            ChatWithSai focuses only on Sai&apos;s professional profile. Knowledge
+            version 1.0.0 — deterministic responses.
           </p>
         </div>
       </main>

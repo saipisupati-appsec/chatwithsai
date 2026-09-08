@@ -18,7 +18,7 @@ export default function SuggestedQuestions({
           key={q}
           onClick={() => onSelect(q)}
           disabled={disabled}
-          className="px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-full text-slate-700 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-full text-slate-700 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-slate-700 hover:text-brand-800 dark:hover:text-brand-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {q}
         </button>
