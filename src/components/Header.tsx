@@ -1,6 +1,7 @@
 "use client";
 
 import { Mode } from "@/lib/types";
+import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   mode: Mode;
@@ -15,31 +16,36 @@ export default function Header({ mode, onModeChange }: HeaderProps) {
   ];
 
   return (
-    <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <header className="border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               ChatWithSai
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">Ask about Sai.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Ask about Sai.
+            </p>
           </div>
 
-          <nav className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
-            {modes.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => onModeChange(m.id)}
-                className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  mode === m.id
-                    ? "bg-white text-brand-700 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </nav>
+          <div className="flex items-center gap-2">
+            <nav className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              {modes.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => onModeChange(m.id)}
+                  className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    mode === m.id
+                      ? "bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </nav>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>
