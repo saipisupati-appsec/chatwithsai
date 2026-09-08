@@ -5,13 +5,18 @@ import Header from "@/components/Header";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import SuggestedQuestions from "@/components/SuggestedQuestions";
+import JobAnalyzePanel from "@/components/JobAnalyzePanel";
 import { Mode, Message } from "@/lib/types";
-import { getMockResponse, SUGGESTED_QUESTIONS } from "@/lib/mock-responses";
+import { SUGGESTED_QUESTIONS } from "@/lib/mock-responses";
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("general");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [questionsRemaining, setQuestionsRemaining] = useState<number | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -26,6 +31,18 @@ export default function Home() {
     setMode(newMode);
   };
 
+  const appendAssistant = (content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content,
+        timestamp: new Date(),
+      },
+    ]);
+  };
+
   const handleSend = async (text: string) => {
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -33,29 +50,65 @@ export default function Home() {
       content: text,
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
-    // Simulate small network/processing delay for realism
-    await new Promise((r) => setTimeout(r, 400 + Math.random() * 400));
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          mode,
+          sessionId: mode === "recruiter" ? sessionId : undefined,
+        }),
+      });
+      const data = await res.json();
 
-    const responseText = getMockResponse(text, mode);
+      if (!res.ok) {
+        appendAssistant(
+          data.error ||
+            "Something went wrong. Please try again or switch modes."
+        );
+        if (typeof data.questionsRemaining === "number") {
+          setQuestionsRemaining(data.questionsRemaining);
+        }
+        return;
+      }
 
-    const assistantMessage: Message = {
-      id: `assistant-${Date.now()}`,
-      role: "assistant",
-      content: responseText,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsTyping(false);
+      appendAssistant(data.reply);
+      if (typeof data.questionsRemaining === "number") {
+        setQuestionsRemaining(data.questionsRemaining);
+      }
+      if (data.sessionId) setSessionId(data.sessionId);
+    } catch {
+      appendAssistant("Network error. Please try again.");
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleSuggested = (question: string) => {
     if (isTyping) return;
     handleSend(question);
+  };
+
+  const handleJobAnalyzed = (payload: {
+    sessionId: string;
+    formatted: string;
+    questionsRemaining: number;
+  }) => {
+    setSessionId(payload.sessionId);
+    setQuestionsRemaining(payload.questionsRemaining);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `assistant-job-${Date.now()}`,
+        role: "assistant",
+        content: payload.formatted,
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   const showSuggestions = messages.length === 0;
@@ -65,10 +118,9 @@ export default function Home() {
       <Header mode={mode} onModeChange={handleModeChange} />
 
       <main className="flex-1 flex flex-col max-w-4xl w-full mx-auto px-4 sm:px-6">
-        {/* Empty state */}
         {showSuggestions && (
-          <div className="flex-1 flex flex-col items-center justify-center py-12 sm:py-20">
-            <div className="text-center mb-10">
+          <div className="flex-1 flex flex-col items-center justify-center py-12 sm:py-20 gap-8">
+            <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 mb-6">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -94,35 +146,39 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="w-full max-w-2xl">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 text-center">
-                Suggested questions
-              </p>
-              <SuggestedQuestions
-                questions={SUGGESTED_QUESTIONS[mode]}
-                onSelect={handleSuggested}
+            {mode === "recruiter" ? (
+              <JobAnalyzePanel
+                onAnalyzed={handleJobAnalyzed}
+                disabled={isTyping}
               />
-            </div>
-
-            {mode === "recruiter" && (
-              <div className="mt-8 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl max-w-md text-center">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>Recruiter mode</strong> — Full job URL analysis &amp;
-                  deterministic matching will be available in a later phase.
-                  For now you can ask about specific skills and experience.
+            ) : (
+              <div className="w-full max-w-2xl">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 text-center">
+                  Suggested questions
                 </p>
+                <SuggestedQuestions
+                  questions={SUGGESTED_QUESTIONS[mode]}
+                  onSelect={handleSuggested}
+                />
               </div>
             )}
           </div>
         )}
 
-        {/* Messages */}
         {!showSuggestions && (
           <div className="flex-1 overflow-y-auto py-6 space-y-4">
+            {mode === "recruiter" && sessionId && (
+              <div className="text-xs text-center text-slate-500 dark:text-slate-400">
+                Recruiter session active
+                {questionsRemaining !== null &&
+                  ` · ${questionsRemaining} follow-up question${
+                    questionsRemaining === 1 ? "" : "s"
+                  } remaining`}
+              </div>
+            )}
             {messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
-
             {isTyping && (
               <div className="flex justify-start animate-fade-in">
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
@@ -134,12 +190,10 @@ export default function Home() {
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
         )}
 
-        {/* Input area */}
         <div className="py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 sticky bottom-0">
           {!showSuggestions && (
             <div className="mb-3">
@@ -155,15 +209,14 @@ export default function Home() {
             disabled={isTyping}
             placeholder={
               mode === "recruiter"
-                ? "Ask about Sai’s fit for a role or paste requirements..."
+                ? "Follow-up about this job analysis…"
                 : mode === "career"
-                ? "Ask career or positioning questions..."
-                : "Ask about Sai..."
+                ? "Ask career or positioning questions…"
+                : "Ask about Sai…"
             }
           />
           <p className="text-xs text-slate-400 dark:text-slate-500 text-center mt-2">
-            ChatWithSai focuses only on Sai&apos;s professional profile. Knowledge
-            version 1.0.0 — deterministic responses.
+            ChatWithSai · Knowledge v1.0.0 · Deterministic-first
           </p>
         </div>
       </main>
