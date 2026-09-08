@@ -8,12 +8,17 @@ import SuggestedQuestions from "@/components/SuggestedQuestions";
 import JobAnalyzePanel from "@/components/JobAnalyzePanel";
 import MatchResultCard from "@/components/MatchResultCard";
 import QuickActions from "@/components/QuickActions";
+import {
+  atmosphereClassName,
+  loadStoredAtmosphere,
+} from "@/components/AtmosphereSelector";
 import { Mode, Message } from "@/lib/types";
 import {
   dynamicSuggestions,
   type TopicId,
 } from "@/lib/answers";
 import { brand } from "@/config/brand";
+import type { AtmosphereId } from "@/config/themes";
 
 const QUESTIONS_MAX = 10;
 
@@ -26,7 +31,12 @@ export default function Home() {
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [lastTopic, setLastTopic] = useState<TopicId | null>(null);
   const [showJobPanel, setShowJobPanel] = useState(true);
+  const [atmosphere, setAtmosphere] = useState<AtmosphereId>("auto");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAtmosphere(loadStoredAtmosphere());
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,13 +140,20 @@ export default function Home() {
 
   const suggestions = dynamicSuggestions(mode, lastTopic, hasJob);
   const emptyChat = messages.length === 0 && !hasJob;
+  const atmoClass = atmosphereClassName(atmosphere);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/80 dark:from-slate-900 dark:to-slate-950">
-      <Header mode={mode} onModeChange={handleModeChange} />
+    <div
+      className={`flex flex-col min-h-screen bg-slate-50/90 dark:bg-slate-900/90 ${atmoClass}`}
+    >
+      <Header
+        mode={mode}
+        onModeChange={handleModeChange}
+        atmosphere={atmosphere}
+        onAtmosphereChange={setAtmosphere}
+      />
 
       <main className="flex-1 flex flex-col max-w-4xl w-full mx-auto px-4 sm:px-6">
-        {/* Verified indicator */}
         <div className="pt-3 pb-1 text-center">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             <span className="font-medium text-slate-600 dark:text-slate-300">
