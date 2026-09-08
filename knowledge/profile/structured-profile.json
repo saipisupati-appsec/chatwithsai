@@ -1,0 +1,116 @@
+{
+  "knowledgeVersion": "1.0.0",
+  "name": "Balasubramanya Sai Kumar",
+  "headline": "Application Security Engineer | Product Security | DevSecOps",
+  "experienceSummary": {
+    "combinedYears": "8+",
+    "softwareDevelopment": {
+      "start": "2018-03",
+      "end": "2020-04",
+      "description": "Software development experience at VSoft Technologies"
+    },
+    "securityFocused": {
+      "start": "2020-04",
+      "end": null,
+      "description": "Security-focused experience from Wells Fargo onwards"
+    },
+    "note": "Do not claim 8+ years of pure Application Security experience."
+  },
+  "currentRole": {
+    "title": "Application Security Engineer",
+    "company": "DAZN Software Private Limited",
+    "location": "Hyderabad, Telangana",
+    "start": "2023-06"
+  },
+  "verifiedSkills": {
+    "applicationSecurity": [
+      "Application Security",
+      "Secure SDLC",
+      "Secure-by-Design",
+      "Threat Modelling",
+      "STRIDE",
+      "Secure Design Reviews",
+      "Secure Code Reviews",
+      "OWASP Top 10",
+      "Vulnerability Management",
+      "Risk Assessment",
+      "Security Champion Program"
+    ],
+    "securityTesting": [
+      "SAST",
+      "DAST",
+      "SCA",
+      "Secrets Scanning",
+      "Web Security Testing",
+      "API Security Testing",
+      "Manual Penetration Testing",
+      "Vulnerability Validation",
+      "Exploitability Assessment"
+    ],
+    "cloudDevSecOps": [
+      "GitHub Actions",
+      "GitHub Advanced Security",
+      "GitHub Checks",
+      "Wiz CI",
+      "Security Gates",
+      "AWS",
+      "Azure",
+      "WAF",
+      "IAM"
+    ],
+    "aiLlmSecurity": [
+      "AI/LLM Security",
+      "Prompt Injection",
+      "Data Protection",
+      "Input Validation",
+      "Output Validation",
+      "Access Control",
+      "AI-assisted developer tooling"
+    ],
+    "securityTools": [
+      "Wiz",
+      "Wiz Sensor",
+      "Checkmarx",
+      "Checkmarx Dev Assist",
+      "Fortify",
+      "Nullify",
+      "Burp Suite",
+      "JFrog Xray",
+      "JFrog Artifactory",
+      "ThreadFix",
+      "Audit Workbench"
+    ],
+    "programming": [
+      "C#",
+      "ASP.NET",
+      ".NET",
+      "Python",
+      "Java",
+      "JavaScript",
+      "Bash",
+      "SQL"
+    ],
+    "standards": [
+      "OWASP",
+      "MITRE ATT&CK",
+      "ISO 27001",
+      "Agile",
+      "Scrum"
+    ]
+  },
+  "unknownOrUnverified": [
+    "Kubernetes",
+    "EKS",
+    "AKS",
+    "GKE",
+    "Go",
+    "Golang",
+    "Ruby",
+    "TypeScript"
+  ],
+  "education": {
+    "degree": "Bachelor of Technology – Electronics and Communication Engineering",
+    "institution": "KITS, affiliated to JNTU-HYD",
+    "year": "2017"
+  }
+}
