@@ -1,0 +1,10 @@
+# Cloudflare Pages / Workers config placeholder
+# Deploy target: chatwithsai.pages.dev
+# Actual project binding is configured in Cloudflare dashboard.
+
+name = "chatwithsai"
+compatibility_date = "2024-09-01"
+
+# Pages project — build output from Next.js
+# [build]
+# command = "npm run build"
